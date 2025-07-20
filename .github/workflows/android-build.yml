@@ -1,4 +1,4 @@
-name: Android Pipeline
+name: Android CI/CD Pipeline
 
 on:
   push:
@@ -6,22 +6,23 @@ on:
   pull_request:
     branches: [ main ]
 
+env:
+  JAVA_VERSION: 17
+  ANDROID_API_LEVEL: 34
+  ANDROID_BUILD_TOOLS: 34.0.0
+  ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+
 jobs:
   build:
-    name: Build and Test Android App
+    name: Build, Test & Upload APK
     runs-on: ubuntu-latest
-
-    env:
-      JAVA_VERSION: 17
-      ANDROID_API_LEVEL: 34
-      ANDROID_BUILD_TOOLS: 34.0.0
-      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+    timeout-minutes: 15
 
     steps:
       - name: Checkout source code
         uses: actions/checkout@v4
 
-      - name: Set up JDK ${{ env.JAVA_VERSION }}
+      - name: Set up Java ${{ env.JAVA_VERSION }}
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
@@ -42,6 +43,7 @@ jobs:
         with:
           cmdline-tools-version: 11076708
           accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: true
           packages: |
             platform-tools
             build-tools;${{ env.ANDROID_BUILD_TOOLS }}
@@ -49,20 +51,31 @@ jobs:
             extras;google;m2repository
             extras;android;m2repository
 
-      - name: Grant execution permission to Gradle
+      - name: Grant Gradle permissions
         run: chmod +x ./gradlew
 
-      - name: Download dependencies
+      - name: Validate Gradle Wrapper
+        run: ./gradlew wrapper --gradle-version=8.5
+
+      - name: Resolve dependencies
         run: ./gradlew dependencies
 
-      - name: Run unit tests
-        run: ./gradlew test
+      - name: Run Unit Tests
+        run: ./gradlew testDebugUnitTest
 
-      - name: Build APK
+      - name: Build APK (Debug)
         run: ./gradlew assembleDebug
 
-      - name: Upload APK artifact
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
+        if: success()
         with:
           name: android-app-debug
           path: app/build/outputs/apk/debug/*.apk
+
+      - name: Upload Test Report (HTML)
+        uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: test-report
+          path: app/build/reports/tests/testDebugUnitTest/index.html
