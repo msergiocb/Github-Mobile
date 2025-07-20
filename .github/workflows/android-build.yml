@@ -40,9 +40,9 @@ jobs:
       - name: Install Android SDK
         uses: android-actions/setup-android@v3
         with:
-          api-level: ${{ env.ANDROID_API_LEVEL }}
-          build-tools: ${{ env.ANDROID_BUILD_TOOLS }}
-          components: |
+          cmdline-tools-version: latest
+          accept-android-sdk-licenses: true
+          packages: |
             platform-tools
             build-tools;${{ env.ANDROID_BUILD_TOOLS }}
             platforms;android-${{ env.ANDROID_API_LEVEL }}
