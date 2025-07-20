@@ -1,0 +1,68 @@
+name: Android Pipeline
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  build:
+    name: Build and Test Android App
+    runs-on: ubuntu-latest
+
+    env:
+      JAVA_VERSION: 17
+      ANDROID_API_LEVEL: 34
+      ANDROID_BUILD_TOOLS: 34.0.0
+      ANDROID_SDK_ROOT: ${{ github.workspace }}/android-sdk
+
+    steps:
+      - name: Checkout source code
+        uses: actions/checkout@v4
+
+      - name: Set up JDK ${{ env.JAVA_VERSION }}
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - name: Cache Gradle dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: gradle-${{ runner.os }}-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            gradle-${{ runner.os }}-
+
+      - name: Install Android SDK
+        uses: android-actions/setup-android@v3
+        with:
+          api-level: ${{ env.ANDROID_API_LEVEL }}
+          build-tools: ${{ env.ANDROID_BUILD_TOOLS }}
+          components: |
+            platform-tools
+            build-tools;${{ env.ANDROID_BUILD_TOOLS }}
+            platforms;android-${{ env.ANDROID_API_LEVEL }}
+            extras;google;m2repository
+            extras;android;m2repository
+
+      - name: Grant execution permission to Gradle
+        run: chmod +x ./gradlew
+
+      - name: Download dependencies
+        run: ./gradlew dependencies
+
+      - name: Run unit tests
+        run: ./gradlew test
+
+      - name: Build APK
+        run: ./gradlew assembleDebug
+
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-app-debug
+          path: app/build/outputs/apk/debug/*.apk
