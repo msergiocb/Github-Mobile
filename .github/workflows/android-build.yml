@@ -37,18 +37,6 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      #- name: Install Android SDK
-      #  uses: android-actions/setup-android@v3
-      #  with:
-      #    api-level: ${{ env.ANDROID_API_LEVEL }}
-      #    build-tools: ${{ env.ANDROID_BUILD_TOOLS }}
-      #    components: |
-      #      platform-tools
-      #      build-tools;${{ env.ANDROID_BUILD_TOOLS }}
-      #      platforms;android-${{ env.ANDROID_API_LEVEL }}
-      #      extras;google;m2repository
-      #      extras;android;m2repository
-
       - name: 📲 Install Android SDK
         uses: android-actions/setup-android@v3
         with:
@@ -87,6 +75,12 @@ jobs:
 
       - name: Build APK (Debug)
         run: ./gradlew assembleDebug
+
+      - name: SonarCloud Scan
+        uses: SonarSource/sonarcloud-github-action@v2
+        env:
+          SONAR_TOKEN: ${{ secrets.SONER_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload APK artifact
         if: success()
