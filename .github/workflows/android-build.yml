@@ -37,17 +37,37 @@ jobs:
           restore-keys: |
             gradle-${{ runner.os }}-
 
-      - name: Install Android SDK
+      #- name: Install Android SDK
+      #  uses: android-actions/setup-android@v3
+      #  with:
+      #    api-level: ${{ env.ANDROID_API_LEVEL }}
+      #    build-tools: ${{ env.ANDROID_BUILD_TOOLS }}
+      #    components: |
+      #      platform-tools
+      #      build-tools;${{ env.ANDROID_BUILD_TOOLS }}
+      #      platforms;android-${{ env.ANDROID_API_LEVEL }}
+      #      extras;google;m2repository
+      #      extras;android;m2repository
+
+      - name: 📲 Install Android SDK
         uses: android-actions/setup-android@v3
         with:
-          api-level: ${{ env.ANDROID_API_LEVEL }}
-          build-tools: ${{ env.ANDROID_BUILD_TOOLS }}
-          components: |
+          cmdline-tools-version: 11076708
+          accept-android-sdk-licenses: true
+          log-accepted-android-sdk-licenses: true
+          packages:
             platform-tools
-            build-tools;${{ env.ANDROID_BUILD_TOOLS }}
-            platforms;android-${{ env.ANDROID_API_LEVEL }}
+            build-tools;34.0.0
+            platforms;android-34
             extras;google;m2repository
             extras;android;m2repository
+
+      - name: Validate grafle properties
+        run: |
+          test -f gradle.properties || (echo "gradle.properties no encontrado" && exit 1)
+          grep -q "android.useAndroidX=true" gradle.properties || (echo "android.useAndroidX=true faltante" && exit 1)
+          grep -q "kotlin.code.style=official" gradle.properties || (echo "kotlin.code.style=official faltante" && exit 1)
+          echo "gradle.properties verificado"
 
       - name: Grant Gradle execute permissions
         run: chmod +x ./gradlew
