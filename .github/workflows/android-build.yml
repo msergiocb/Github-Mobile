@@ -49,19 +49,27 @@ jobs:
             extras;google;m2repository
             extras;android;m2repository
 
-      - name: Grant execution permission to Gradle
+      - name: Grant Gradle execute permissions
         run: chmod +x ./gradlew
 
-      - name: Download dependencies
+      - name: Download project dependencies
         run: ./gradlew dependencies
 
       - name: Run unit tests
-        run: ./gradlew test
+        run: ./gradlew testDebugUnitTest
 
-      - name: Build APK
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: app/build/reports/tests/testDebugUnitTest/index.html
+
+      - name: Build APK (Debug)
         run: ./gradlew assembleDebug
 
       - name: Upload APK artifact
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: android-app-debug
