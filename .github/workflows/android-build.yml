@@ -41,13 +41,13 @@ jobs:
       - name: Install Android SDK
         uses: android-actions/setup-android@v3
         with:
-          cmdline-tools-version: 11076708
-          accept-android-sdk-licenses: true
+          api-level: ${{ env.ANDROID_BUILD_TOOLS }}
+          build-tools: ${{ env.ANDROID_BUILD_TOOLS }}
           log-accepted-android-sdk-licenses: true
-          packages: |
+          components: |
             platform-tools
-            build-tools;34.0.0
-            platforms;android-34
+            build-tools;${{ env.ANDROID_BUILD_TOOLS }}
+            platforms;android-${{ env.ANDROID_API_LEVEL }}
             extras;google;m2repository
             extras;android;m2repository
 
