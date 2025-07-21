@@ -10,6 +10,7 @@ jobs:
   build:
     name: Build and Test Android App
     runs-on: ubuntu-latest
+    environment: Mobile_dev
 
     env:
       JAVA_VERSION: 17
